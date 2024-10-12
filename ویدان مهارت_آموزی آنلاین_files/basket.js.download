@@ -1,0 +1,128 @@
+const formBasketSendBank = document.getElementById('basket_send_bank');
+let sideBasket = document.getElementById('side-basket');
+let dismissBasket = document.getElementById('dismiss-basket');
+let basketOverlay = document.querySelector('.basket-overlay');
+// Show Side Basket
+if (document.getElementById('btn-basket') !== null) {
+    let btnSideBasket = document.getElementById('btn-basket');
+    let body = document.querySelector('body');
+    btnSideBasket.addEventListener('click', function () {
+        if (sideBasket !== null) {
+            sideBasket.classList.add('active');
+        }
+        if (sideBasket !== null) {
+            basketOverlay.classList.add('active');
+        }
+        body.classList.add('fixedposition');
+    });
+    if (basketOverlay !== null) {
+        basketOverlay.addEventListener('click', function () {
+            sideBasket.classList.remove('active');
+            basketOverlay.classList.remove('active')
+            body.classList.remove('fixedposition');
+        });
+    }
+    if (dismissBasket !== null) {
+        dismissBasket.addEventListener('click', function () {
+            sideBasket.classList.remove('active');
+            basketOverlay.classList.remove('active')
+            body.classList.remove('fixedposition');
+        });
+    }
+}
+
+function addToBasket(courseId) {
+    let xhr = new XMLHttpRequest();
+    xhr.withCredentials = false;
+    xhr.open("POST", "/fa/basket/add-to-basket");
+    xhr.onload = () => {
+        let json;
+        json = JSON.parse(xhr.responseText);
+        location.reload();
+    };
+    formData = new FormData;
+    formData.append("courseId", courseId);
+    xhr.send(formData);
+}
+
+function payLearningPath(learning_path_id) {
+    window.location.href = "/fa/learning-path/send-to-bank?slug=" + learning_path_id;
+}
+
+function deleteFromBasket(orderDetailsId) {
+    let xhr = new XMLHttpRequest();
+    xhr.withCredentials = false;
+    xhr.open("POST", "/fa/basket/delete-from-basket");
+    xhr.onload = () => {
+        let json;
+        json = JSON.parse(xhr.responseText);
+        if (json.error) {
+            console.log(json);
+            return
+        }
+        if (json.status === "ok") {
+            console.log(json);
+            location.reload();
+        }
+    };
+    let formData = new FormData;
+    formData.append("orderDetailsId", orderDetailsId);
+    xhr.send(formData);
+}
+
+function dropDiscountBasket() {
+    let xhr = new XMLHttpRequest();
+    xhr.withCredentials = false;
+    xhr.open("POST", "/fa/basket/drop-discount");
+    xhr.onload = () => {
+        let json;
+        json = JSON.parse(xhr.responseText);
+        if (json.error) {
+            console.log(json);
+            return
+        }
+        if (json.status === "ok") {
+            console.log(json);
+            location.reload();
+        }
+    };
+    xhr.send();
+}
+
+const modalDelete = document.getElementById("modal-delete");
+
+function createDeleteModal(orderDetailsId) {
+    const btnDelete = modalDelete.querySelector("#btn-delete");
+    btnDelete.dataset.odId = orderDetailsId;
+}
+
+if (document.getElementById('modal-delete') !== null) {
+    const btnDelete = modalDelete.querySelector("#btn-delete");
+    btnDelete.onclick = () => {
+        const odId = btnDelete.dataset.odId;
+        deleteFromBasket(odId);
+    }
+}
+//wallet check
+if (formBasketSendBank !== null) {
+    const input_use_bag = formBasketSendBank.querySelector('#use_bag');
+    const user_wallet = formBasketSendBank.querySelector("[data-UserWallet]");
+    const totla_basket_price = formBasketSendBank.querySelector("[data-totlaBasketPrice]");
+    const calcWallet = () => {
+        totla_basket_price.innerHTML = Intl.NumberFormat().format(totla_basket_price.dataset.totlabasketprice);
+        user_wallet.innerHTML = Intl.NumberFormat().format(user_wallet.dataset.userwallet);
+        if (input_use_bag.checked) {
+            if (Number(user_wallet.dataset.userwallet) === 0) {
+                input_use_bag.checked = false;
+            } else if (Number(user_wallet.dataset.userwallet) > Number(totla_basket_price.dataset.totlabasketprice)) {
+                user_wallet.innerHTML = Intl.NumberFormat().format(Number(user_wallet.dataset.userwallet) - Number(totla_basket_price.dataset.totlabasketprice));
+                totla_basket_price.innerHTML = 0;
+            } else {
+                user_wallet.innerHTML = 0;
+                totla_basket_price.innerHTML = Intl.NumberFormat().format(Number(totla_basket_price.dataset.totlabasketprice) - Number(user_wallet.dataset.userwallet));
+            }
+        }
+    };
+    calcWallet();
+    input_use_bag.addEventListener("change", calcWallet);
+}

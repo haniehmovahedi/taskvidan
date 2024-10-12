@@ -1,0 +1,241 @@
+// Sign Modals
+const modalSpecialSign = document.querySelectorAll("[data-modal-sign]");
+
+if (modalSpecialSign.length > 0) {
+    modalSpecialSign.forEach(modalSign => {
+        const modalSignIn = modalSign.querySelector(".section-signin");
+        const modalCode = modalSign.querySelector(".section-code");
+        const modalRegister = modalSign.querySelector(".section-register");
+        const modalPassword = modalSign.querySelector(".section-password");
+        const modalForgetPass = modalSign.querySelector(".section-forgetpass");
+        const btnChangeNumber = modalSign.querySelectorAll(".btn-change-number");
+        const btnForgetPass = modalSign.querySelector(".btn-forget-password");
+        const btnDisposablePass = modalSign.querySelector(".btn-disposable-password");
+        const btnExitModal = modalSign.querySelectorAll(".btn-exit-modal");
+        const btnSendMobile = modalSign.querySelector(".js-btn-send");
+        const btnSendCode = modalSign.querySelector(".js-btn-code");
+        const btnRegister = modalSign.querySelector(".js-btn-register");
+        const txtInputMobile = modalSign.querySelector("#mobile");
+        const txtInputCountrYCode = modalSign.querySelector("#country_code");
+        const txtInputMobileError = txtInputMobile.parentElement.nextElementSibling.nextElementSibling;
+        const txtInputCode = modalSign.querySelector("#code");
+        let txtInputName = modalSign.querySelector("#name");
+        let txtInputFamily = modalSign.querySelector("#family");
+        let txtENInputName = modalSign.querySelector("#en_name");
+        let txtENInputFamily = modalSign.querySelector("#en_family ");
+        let txtInputRegCode = modalSign.querySelector("#registerCode");
+        const lid = modalSign.querySelector("input[name='lid']");
+        const specialId = modalSign.querySelector("input[name='specialId']");
+        const loader = modalSign.querySelector(".loader");
+
+        const sendMobile = function () {
+            let xhr, formData;
+            xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+            xhr.open("POST", "/fa/auth/getuserbymobile");
+            xhr.onload = () => {
+                let json;
+                json = JSON.parse(xhr.responseText);
+                if (json.error) {
+                    console.log(json.error)
+                    console.log(txtInputMobileError)
+                    txtInputMobileError.innerHTML = json.error;
+                    txtInputMobileError.classList.add('active');
+                } else {
+                    if (json.status === 1) {
+                        modalSignIn.classList.remove('active');
+                        modalCode.classList.add('active');
+                    } else if (json.status === 3) {
+                        modalSignIn.classList.remove('active');
+                        modalRegister.classList.add('active');
+                        let inputSec = modalRegister.querySelector(".inputgroup");
+                        let inpt = `<input name="en_name" required type="text" id="en_name" class="input mb-2" placeholder="نام انگلیسی">
+                <input name="en_family" required type="text" id="en_family" class="input mb-2" placeholder="نام خانوادگی انگلیسی">`;
+                        inputSec.innerHTML = inpt + inputSec.innerHTML;
+                        txtENInputName = modalSign.querySelector("#en_name");
+                        txtENInputFamily = modalSign.querySelector("#en_family ");
+                        txtInputRegCode = modalSign.querySelector("#registerCode");
+                    } else if (json.status === 2) {
+                        modalSignIn.classList.remove('active');
+                        modalRegister.classList.add('active');
+                        let inputSec = modalRegister.querySelector(".inputgroup");
+                        inputSec.attributes
+                        let inpt = `<input class="input mb-2" id="name" name="name" placeholder="نام" required type="text">
+                <input class="input mb-2" id="family" name="family" placeholder="نام خانوادگی" required type="text">`;
+                        inputSec.innerHTML = inpt + inputSec.innerHTML;
+                        txtInputName = modalSign.querySelector("#name");
+                        txtInputFamily = modalSign.querySelector("#family");
+                        txtInputRegCode = modalSign.querySelector("#registerCode");
+                    }
+                }
+                loader.classList.remove('active')
+                return null;
+            };
+            formData = new FormData;
+            formData.append("mobile", txtInputMobile.value);
+            formData.append("country_code", txtInputCountrYCode.value);
+            xhr.send(formData);
+            loader.classList.add('active')
+        }
+        btnSendMobile.onclick = () => {
+            sendMobile();
+        }
+        txtInputMobile.addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+                sendMobile();
+            }
+        });
+        const sendCode = function () {
+            if (txtInputCode.value.length < 4) {
+                console.log(txtInputCode.value);
+                modalCode.querySelector('.alert').classList.add('active');
+                return;
+            }
+            let xhr, formData;
+            xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+            xhr.open("POST", "/fa/auth/acceptcode");
+            xhr.onload = async () => {
+                let json;
+                json = JSON.parse(xhr.responseText);
+                if (json.error) {
+                    let alertt = modalCode.querySelector('.alert');
+                    alertt.innerHTML = json.error;
+                    alertt.classList.add('active');
+                }
+                loader.classList.remove('active')
+                if (json.status === "ok") {
+                    if (signInCallBackFunc !== null) {
+                        await new Promise((resolve) => {
+                            let signInCallBackParam = null;
+                            if (signInCallBackFunc === "addToBasket") {
+                                signInCallBackParam = courseId;
+                            } else if (signInCallBackFunc === "payLearningPath") {
+                                signInCallBackParam = learningPathId;
+                            }
+                            console.log(signInCallBackFunc,signInCallBackParam)
+                            eval(signInCallBackFunc)(signInCallBackParam);
+                            resolve();
+                        });
+
+                    } else if (json.url) {
+                        window.location.href = json.url;
+                    }
+
+                    // location.reload();
+                }
+
+            };
+            formData = new FormData;
+            formData.append("mobile", txtInputMobile.value);
+            formData.append("country_code", txtInputCountrYCode.value);
+            formData.append("code", txtInputCode.value);
+            if (lid !== null) {
+                formData.append("lid", lid.value);
+            }
+            if (specialId !== null) {
+                formData.append("specialId", specialId.value);
+            }
+            xhr.send(formData);
+            loader.classList.add('active')
+        }
+        btnSendCode.onclick = () => {
+            sendCode();
+        }
+        txtInputCode.addEventListener("keypress", function (event) {
+            // If the user presses the "Enter" key on the keyboard
+            if (event.key === "Enter") {
+                sendCode();
+            }
+        });
+        btnRegister.onclick = () => {
+            if (txtInputName !== null && txtInputName.value.length <= 0) {
+                modalRegister.querySelector('.alert').classList.add('active');
+                modalRegister.querySelector('.alert').innerHTML = "لطفا نام خود را وارد کنید";
+                return;
+            }
+            if (txtInputFamily !== null && txtInputFamily.value.length <= 0) {
+                modalRegister.querySelector('.alert').classList.add('active');
+                modalRegister.querySelector('.alert').innerHTML = "لطفا نام خانوادگی خود را وارد کنید";
+                return;
+            }
+            if (txtENInputName !== null && txtENInputName.value.length <= 0) {
+                modalRegister.querySelector('.alert').classList.add('active');
+                modalRegister.querySelector('.alert').innerHTML = "لطفا نام خود را وارد کنید";
+                return;
+            }
+            if (txtENInputFamily !== null && txtENInputFamily.value.length <= 0) {
+                modalRegister.querySelector('.alert').classList.add('active');
+                modalRegister.querySelector('.alert').innerHTML = "لطفا نام خانوادگی خود را وارد کنید";
+                return;
+            }
+            if (txtInputRegCode.value.length < 4) {
+                modalRegister.querySelector('.alert').classList.add('active');
+                modalRegister.querySelector('.alert').innerHTML = "لطفا کد ارسال شده را وارد کنید";
+                return;
+            }
+            let xhr, formData;
+            xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+            xhr.open("POST", "/fa/auth/registeruser");
+            xhr.onload = () => {
+                let json;
+                json = JSON.parse(xhr.responseText);
+                if (json.error) {
+                    modalCode.querySelector('.alert').classList.add('active');
+                    modalCode.querySelector('.alert').innerHTML = "لطفا کد ارسال شده را به درستی وارد کنید";
+                }
+                loader.classList.remove('active')
+                if (json.status === "ok") {
+                    console.log(json);
+                    if (signInCallBackFunc !== null) {
+                        window[signInCallBackFunc](courseId)
+                    }
+                    window.location.href = json.url;
+
+                }
+            };
+            formData = new FormData;
+            formData.append("mobile", txtInputMobile.value);
+            formData.append("country_code", txtInputCountrYCode.value);
+            console.log(txtInputRegCode);
+            formData.append("code", txtInputRegCode.value);
+            if (txtInputName !== null && txtInputFamily !== null) {
+                formData.append("name", txtInputName.value);
+                formData.append("family", txtInputFamily.value);
+            } else {
+                formData.append("en_name", txtENInputName.value);
+                formData.append("en_family", txtENInputFamily.value);
+            }
+            xhr.send(formData);
+            loader.classList.add('active')
+        }
+        btnChangeNumber.forEach(function (input) {
+            input.addEventListener('click', () => {
+                modalSignIn.classList.add('active');
+                modalRegister.classList.remove('active');
+                modalCode.classList.remove('active');
+                // modalPassword.classList.remove('active');
+                modalForgetPass.classList.remove('active');
+            })
+        });
+        btnExitModal.forEach(function (input) {
+            input.addEventListener('click', () => {
+                modalSignIn.classList.add('active');
+                modalRegister.classList.remove('active');
+                modalCode.classList.remove('active');
+                // modalPassword.classList.remove('active');
+                modalForgetPass.classList.remove('active');
+            })
+        });
+    })
+
+}
+//Sign out Modals
+if (document.getElementById('modal-logout') !== null) {
+    const modalSign = document.getElementById("modal-logout");
+    const btnLogout = modalSign.querySelector("#BtnLogOut");
+    btnLogout.onclick = () => {
+        window.location.href = "/fa/auth/logout";
+    }
+}

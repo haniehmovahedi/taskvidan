@@ -1,0 +1,249 @@
+let body = document.querySelector('body');
+let signInCallBackFunc = null;
+let courseId = null;
+let learningPathId = null;
+const btnAddBasket = document.querySelectorAll("[data-btn-add-basket]");
+const btnPayLearningPath = document.querySelectorAll("[data-btn-pay-learning-path]");
+const videoCart = document.querySelectorAll("[data-bs-target='#modal-player']");
+const modalPlayer = document.getElementById('modal-player');
+const modalPreviewPlayer = document.getElementById('modal-preview');
+const btnNewsletter = document.querySelectorAll('.js-newsletter_register');
+const inputNewletter = document.querySelectorAll('.js-newletter_email');
+const csrfNewletter = document.querySelector('#newletter_identityFiled');
+
+// Show Filter on Mobile
+if (document.getElementById('mobile-advanced-content') !== null) {
+    let AdvancedSearch = document.getElementById('mobile-advanced-content');
+    let btnAdvancedSearch = document.querySelector('.btn-advanced-search');
+    let closeAdvanced = AdvancedSearch.querySelector('.btn-close-filter')
+    btnAdvancedSearch.addEventListener('click', function () {
+        AdvancedSearch.classList.add('active');
+        body.classList.add('fixedposition');
+    });
+    closeAdvanced.addEventListener('click', function () {
+        AdvancedSearch.classList.remove('active');
+        body.classList.remove('fixedposition');
+    });
+}
+if (document.querySelector('.btn-mobile-menu') != null) {
+    let btnMobileMenu = document.querySelector('.btn-mobile-menu');
+    let sidebarMenu = document.getElementById('sidebar-menu');
+    let menuOverlay = document.querySelector('.overlay-back');
+    let btnCloseSidebar = document.querySelector('.btn-close-menu');
+    btnMobileMenu.onclick = () => {
+        menuOverlay.classList.add('active');
+        sidebarMenu.classList.add('active');
+    }
+    menuOverlay.onclick = () => {
+        menuOverlay.classList.remove('active');
+        sidebarMenu.classList.remove('active');
+    }
+    btnCloseSidebar.onclick = () => {
+        menuOverlay.classList.remove('active');
+        sidebarMenu.classList.remove('active');
+    }
+}
+// More Seen On Products List Category
+if (document.getElementById('products-section') !== null) {
+    let products_section = document.getElementById('products-section');
+    let side_body_category = products_section.querySelector('.side-body-cetegory');
+    if (document.querySelector('.btn-seeMore-list') !== null) {
+        let btnSeeMoreList = products_section.querySelectorAll('.btn-seeMore-list');
+        btnSeeMoreList.forEach(seeMore => {
+            seeMore.addEventListener('click', function () {
+                this.classList.toggle('active');
+                parent = this.parentElement;
+                while (!parent.classList.contains('side-body-cetegory')) parent = parent.parentElement;
+                parent.classList.toggle('active');
+            });
+        })
+
+    }
+}
+if (document.querySelector('.user-profile-section') != null) {
+    var userMenu = document.querySelector('.grid-user-menu');
+    var overlayUserMenu = document.querySelector('.overlay-userMenu');
+    var btnUserMenu = document.querySelector('.btn-usermenu');
+    var btnCloseprofileMenu = document.querySelector('.btn-closeprofileMenu');
+    btnUserMenu.onclick = () => {
+        userMenu.classList.add('active');
+        overlayUserMenu.classList.add('active');
+    }
+    overlayUserMenu.onclick = () => {
+        userMenu.classList.remove('active');
+        overlayUserMenu.classList.remove('active');
+    }
+    btnCloseprofileMenu.onclick = () => {
+        userMenu.classList.remove('active');
+        overlayUserMenu.classList.remove('active');
+    }
+}
+// Modal Preview Image
+if (document.querySelector('.document-item') !== null) {
+    let documentList = document.querySelector('.documents-list');
+    let documentItems = documentList.querySelectorAll('.document-item');
+    let imgDocument = documentList.querySelectorAll('.img');
+    let modalImagePreview = document.getElementById('modal-image-preview');
+    documentItems.forEach((docItem, i) => {
+        docItem.onclick = () => {
+            modalImagePreview.src = imgDocument[i].src;
+        }
+    })
+}
+if (btnAddBasket !== undefined && btnAddBasket.length > 0) {
+    signInCallBackFunc = "addToBasket";
+    for (let item of btnAddBasket) {
+        item.addEventListener('click', function () {
+            courseId = item.dataset.courseid;
+            if (document.getElementById('modal-sign') === null && courseId != null) {
+                addToBasket(courseId);
+                console.log(item)
+
+            }
+        })
+    }
+}
+if (btnPayLearningPath !== undefined && btnPayLearningPath.length > 0) {
+    signInCallBackFunc = "payLearningPath";
+    btnPayLearningPath.forEach(btn => {
+        btn.addEventListener('click', function () {
+            learningPathId = btn.dataset.btnPayLearningPath;
+        })
+    });
+}
+if (document.getElementById('desktop-search-content') !== null) {
+    var desktopSearch = document.getElementById('desktop-search-content');
+    var btnMobileSearch = document.getElementById('btn-mobile-search');
+    var searchContent = document.querySelector('.search-content');
+    var searchInput = document.getElementById('search-input');
+    var searchResult = document.getElementById('search-result');
+    var btnClearsearch = document.querySelector('.btn-clear');
+    var btnSearchBack = document.querySelector('.btn-searchback');
+    btnMobileSearch.onclick = () => {
+        searchContent.classList.add('active');
+        searchInput.focus();
+    }
+    btnSearchBack.onclick = () => {
+        searchContent.classList.remove('active');
+        if (searchResult !== null) {
+            searchResult.classList.remove('active')
+        }
+        btnClearsearch.classList.remove('active')
+    }
+    searchInput.addEventListener('input', input => {
+        if (input.target.value.length > 0) {
+            if (searchResult !== null) {
+                searchResult.classList.add('active')
+            }
+            btnClearsearch.classList.add('active')
+        } else {
+            if (searchResult !== null) {
+                searchResult.classList.remove('active')
+            }
+        }
+    });
+    btnClearsearch.onclick = () => {
+        searchInput.value = '';
+        if (searchResult !== null) {
+            searchResult.classList.remove('active')
+        }
+        btnClearsearch.classList.remove('active')
+    }
+    document.addEventListener('click', function (event) {
+        var isClickInside = desktopSearch.contains(event.target);
+        if (isClickInside) {
+            null
+        } else {
+            searchContent.classList.remove('active');
+            if (searchResult !== null) {
+                searchResult.classList.remove('active')
+            }
+            btnClearsearch.classList.remove('active')
+        }
+    });
+}
+if (modalPlayer != null) {
+    let modalTitle = modalPlayer.getElementsByClassName('modal-title')
+    let modalVideo = modalPlayer.querySelector('video')
+    videoCart.forEach(function (element) {
+        element.addEventListener("click", function () {
+            modalTitle[0].innerText = element.dataset.title;
+            modalVideo.src = element.dataset.video;
+            modalVideo.poster = element.dataset.poster;
+        })
+    });
+    modalPlayer.addEventListener('shown.bs.modal', function () {
+        modalVideo.autoplay = true;
+    });
+    modalPlayer.addEventListener('hidden.bs.modal', function () {
+        modalVideo.src = '';
+    });
+}
+if (modalPreviewPlayer != null) {
+    const modalPreviewVideo = modalPreviewPlayer.querySelector('video')
+    modalPreviewPlayer.addEventListener('shown.bs.modal', () => {
+        modalPreviewVideo.play();
+    });
+    modalPreviewPlayer.addEventListener('hidden.bs.modal', function () {
+        modalPreviewVideo.pause();
+        modalPreviewVideo.currentTime = 0;
+    });
+}
+btnNewsletter.forEach(news => {
+    news.addEventListener('click', function () {
+        let txt_mail;
+        inputNewletter.forEach(txt => {
+            if (txt.value !== '') {
+                txt_mail = txt.value;
+            }
+        });
+        sendNewsletter(txt_mail);
+    });
+});
+
+function sendNewsletter(txt) {
+    let xhr = new XMLHttpRequest();
+    xhr.withCredentials = false;
+    xhr.open("POST", "/fa/index/newsletter");
+    xhr.onload = () => {
+        location.reload();
+    };
+    let formData = new FormData();
+    formData.append("email", txt);
+    xhr.send(formData);
+}
+
+// Search filter
+if (document.querySelector('.filter-input') !== null) {
+    let filters = document.querySelectorAll('.filter-input');
+    filters.forEach(filter => {
+        filter.addEventListener('keyup', function () {
+            filter.nextElementSibling.querySelectorAll('li').forEach(item => {
+                if (item.innerText.search(filter.value) > -1 || filter.value === "") {
+                    item.style.display = "block";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        });
+    });
+}
+const cop_buttons = document.querySelectorAll("[data-copy-link]");
+cop_buttons.forEach(button => {
+    button.addEventListener('click', () => {
+        const dataLink = button.getAttribute('data-copy-link');
+
+        const tempInput = document.createElement('input');
+        tempInput.value = dataLink;
+        document.body.appendChild(tempInput);
+
+        tempInput.select();
+        tempInput.setSelectionRange(0, 99999); // For mobile devices
+
+        document.execCommand('copy');
+
+        document.body.removeChild(tempInput);
+
+        alert('لینک کپی شده در کلیپ بورد: ' + dataLink);
+    });
+});
